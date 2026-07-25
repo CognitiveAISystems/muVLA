@@ -1,0 +1,12 @@
+# robosuite 1.4.0 calls `mujoco.mj_fullM(model, dst, qM)`. mujoco 3.9 changed that
+# signature to take MjData, so an unpinned install picks up a version where every LIBERO
+# environment dies with `TypeError: mj_fullM(): incompatible function arguments` on the
+# first reset. 3.8.0 is what the reported LIBERO numbers were produced against.
+mujoco==3.8.0
+imageio[ffmpeg]
+robosuite==1.4.0
+bddl==1.0.1
+easydict==1.9
+cloudpickle==2.1.0
+gym==0.25.2
+future==0.18.2

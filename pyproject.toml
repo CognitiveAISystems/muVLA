@@ -1,0 +1,118 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mu-vla"
+authors = [
+    {name = "the muVLA authors"},
+]
+description = "mu-VLA: recurrent memory for Vision-Language-Action models in partially observable manipulation"
+version = "1.0.0"
+readme = "README.md"
+requires-python = ">=3.9,<3.12"
+keywords = ["vision-language-action models", "recurrent memory", "POMDP", "robot learning"]
+license = {file = "LICENSE"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "accelerate>=0.25.0",
+    "draccus==0.8.0",
+    "einops",
+    # flash-attn is deliberately absent: nothing in mu-VLA requests
+    # attn_implementation="flash_attention_2" (the one call site is commented out),
+    # and the published results were produced without it. See SETUP.md.
+    "huggingface_hub",
+    "json-numpy",
+    "jsonlines",
+    "matplotlib",
+    "peft==0.11.1",
+    "protobuf==4.25.9",
+    "rich",
+    "sentencepiece==0.1.99",
+    "timm==0.9.10",
+    "tokenizers==0.19.1",
+    "torch==2.2.1",
+    "torchvision==0.17.1",
+    "torchaudio==2.2.1",
+    # NOTE: this is a REQUIRED fork, not a convenience pin. It adds the memory-token
+    # attention mask that mu-VLA depends on (`LlamaConfig.use_mu_vla_memory_mask`).
+    # Substituting the PyPI `transformers` package installs cleanly but silently
+    # disables memory: mem-tokens are injected and then attended to as ordinary
+    # prefix tokens, so training runs and produces meaningless memory metrics.
+    "transformers @ git+https://github.com/CognitiveAISystems/transformers-mu-openvla-oft.git@9dbc09f574912a45dd0d71354c035e3c37bcce9e",
+    "wandb",
+    "tensorflow==2.15.0",
+    "tensorflow_datasets==4.9.3",
+    # Must stay <1.18: newer releases ship protobuf-5.27-generated code,
+    # which cannot load under the protobuf 4.x that tensorflow 2.15 requires.
+    "tensorflow_metadata==1.17.3",
+    "tensorflow_graphics==2021.12.3",
+    "dlimp @ git+https://github.com/moojink/dlimp_openvla@040105d256bd28866cc6620621a3d5f7b6b91b46",
+    "diffusers==0.30.3",
+    "imageio[ffmpeg,pyav]",
+    "opencv-python==4.10.0.84",
+    "gymnasium==0.29.1",
+    # Pinned to the tag the published results were produced against. v1.0.0 renamed
+    # two observation keys (`prompt` -> `task_cue`, `joints` -> `proprio`) and
+    # experiments/robot/mikasa_robo/ is written against that spelling, so this pin
+    # must not float. Note the upstream packaging gap documented in SETUP.md:
+    # `low_poly_light_bulb.glb` is missing from every built distribution, affecting
+    # the 8 lamp environments (none of which are in the 32-env benchmark).
+    "mikasa-robo-suite @ git+https://github.com/CognitiveAISystems/MIKASA-Robo.git@v1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=24.2.0",
+    "gpustat",
+    "ipython",
+    "pre-commit",
+    "ruff>=0.2.2",
+]
+
+[project.urls]
+homepage = "https://github.com/CognitiveAISystems/muVLA"
+repository = "https://github.com/CognitiveAISystems/muVLA"
+
+[tool.uv]
+# Resolution is restricted to the platform the published results were produced on.
+# torch 2.2.1 + tensorflow 2.15.0 have no working combination on macOS or on
+# Python != 3.10, so a wider range would only produce locks that fail at install
+# time. See SETUP.md.
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64' and python_full_version == '3.10.*'"]
+prerelease = "allow"
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["cache"]
+
+[tool.setuptools.package-data]
+"prismatic" = ["py.typed"]
+
+[tool.black]
+line-length = 121
+target-version = ["py39", "py310"]
+preview = true
+
+[tool.ruff]
+line-length = 121
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["A", "B", "E", "F", "I", "RUF", "W"]
+ignore = ["F722"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F401"]
