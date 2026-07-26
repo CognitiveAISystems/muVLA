@@ -219,6 +219,32 @@ to run a memory checkpoint with memory disabled as an ablation.
 export CKPT_DIR="${EXP_DIR}/runs/<...>--150000_chkpt"
 ```
 
+### 4.0. Released checkpoints
+
+To evaluate without training first, both reported MIKASA-Robo runs are on the Hub under the
+[**mu-vla**](https://huggingface.co/mu-vla/models) organization. Both are step 150000,
+64 memory tokens, cosine scheduling, trained on the five environments from section 2; they
+differ only in the TBPTT truncation length.
+
+| Checkpoint | TBPTT |
+|---|---|
+| [`mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k8-tbptt`](https://huggingface.co/mu-vla/mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k8-tbptt) | 8 |
+| [`mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k2-tbptt`](https://huggingface.co/mu-vla/mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k2-tbptt) | 2 |
+
+```bash
+export CKPT_DIR="$PWD/my_checkpoints/mu-vla-mikasa-5-m64-k8"
+
+uv run python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('mu-vla/mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k8-tbptt',
+                  local_dir='$CKPT_DIR')
+"
+```
+
+Each is about 16 GB and includes `dataset_statistics.json` and `memory_meta.json`, so the
+commands below work against the downloaded directory unchanged — the memory
+hyperparameters are picked up from the checkpoint.
+
 ### 4.1. Canonical evaluation
 
 Both inference modes were reported for every checkpoint, so both are run:

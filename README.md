@@ -4,7 +4,7 @@
 
 [![arXiv](https://img.shields.io/badge/arXiv-2606.12497-b31b1b?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2606.12497)
 [![Project page](https://img.shields.io/badge/Project-Website-4c6ef5?style=for-the-badge&logo=googlechrome&logoColor=white)](https://avanturist322.github.io/mu-vla/)
-[![Checkpoints](https://img.shields.io/badge/🤗%20Checkpoints-TBA-lightgrey?style=for-the-badge)](#checkpoints)
+[![Checkpoints](https://img.shields.io/badge/🤗%20Checkpoints-mu--vla-ffce3a?style=for-the-badge)](https://huggingface.co/mu-vla/models)
 [![License](https://img.shields.io/badge/License-MIT-2f9e44?style=for-the-badge)](LICENSE)
 
 <img src="https://avanturist322.github.io/project-websites/mu-vla/figures/visual_abstract_v5.png" alt="μVLA visual abstract" width="100%">
@@ -87,10 +87,40 @@ Training:
 
 ## Checkpoints
 
-Fine-tuned μVLA checkpoints will be released on the Hugging Face Hub: **TBA.**
+Fine-tuned μVLA checkpoints are on the Hugging Face Hub under the
+[**mu-vla**](https://huggingface.co/mu-vla/models) organization. All three are step-150000
+runs with 64 memory tokens and cosine learning-rate scheduling; they differ in the benchmark
+and in the TBPTT truncation length.
 
-Until then, both benchmark pages contain the exact training configurations the reported
-numbers were produced with, so the checkpoints can be reproduced from the base
+| Checkpoint | Benchmark | TBPTT | Training recipe |
+|---|---|---|---|
+| [`mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k8-tbptt`](https://huggingface.co/mu-vla/mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k8-tbptt) | MIKASA-Robo, 5 tasks | 8 | [MIKASA.md](MIKASA.md) |
+| [`mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k2-tbptt`](https://huggingface.co/mu-vla/mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k2-tbptt) | MIKASA-Robo, 5 tasks | 2 | [MIKASA.md](MIKASA.md) |
+| [`mu-vla-openvla-oft-libero-4-tasks-m64-k8-tbptt`](https://huggingface.co/mu-vla/mu-vla-openvla-oft-libero-4-tasks-m64-k8-tbptt) | LIBERO, 4 suites | 8 | [LIBERO.md](LIBERO.md) |
+
+Each repository is a complete evaluation-ready checkpoint directory: the LoRA-merged model
+as sharded `safetensors`, the LoRA adapter on its own under `lora_adapter/`, the action head,
+the proprio projector, the memory module, `dataset_statistics.json` (needed to unnormalize
+actions) and `memory_meta.json` (the memory hyperparameters, auto-detected at evaluation
+time). Roughly 16 GB each.
+
+```bash
+export CKPT_DIR="$PWD/my_checkpoints/mu-vla-mikasa-5-m64-k8"
+
+uv run python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('mu-vla/mu-vla-openvla-oft-mikasa-robo-5-tasks-m64-k8-tbptt',
+                  local_dir='$CKPT_DIR')
+"
+```
+
+The result is a directory that the evaluation commands in the benchmark pages accept
+directly as `--checkpoint`. Loading it needs the `transformers` fork pinned in
+`pyproject.toml`, since upstream `transformers` cannot build the memory-augmented backbone,
+see [SETUP.md](SETUP.md).
+
+Both benchmark pages also contain the exact training configurations the reported numbers
+were produced with, so the checkpoints can be reproduced from the base
 `openvla/openvla-7b` model.
 
 ## Acknowledgements
