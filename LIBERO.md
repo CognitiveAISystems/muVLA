@@ -206,6 +206,28 @@ evaluates a memory checkpoint and a baseline checkpoint.
 export CKPT_DIR="${EXP_DIR}/runs/<...>--150000_chkpt"
 ```
 
+### 4.0. Released checkpoint
+
+To evaluate without training first, the reported LIBERO run is on the Hub under the
+[**mu-vla**](https://huggingface.co/mu-vla/models) organization:
+[`mu-vla-openvla-oft-libero-4-tasks-m64-k8-tbptt`](https://huggingface.co/mu-vla/mu-vla-openvla-oft-libero-4-tasks-m64-k8-tbptt).
+Step 150000, 64 memory tokens, TBPTT length 8, cosine scheduling, trained on the combined
+four-suite dataset from section 2.
+
+```bash
+export CKPT_DIR="$PWD/my_checkpoints/mu-vla-libero-4-m64-k8"
+
+uv run python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('mu-vla/mu-vla-openvla-oft-libero-4-tasks-m64-k8-tbptt',
+                  local_dir='$CKPT_DIR')
+"
+```
+
+About 16 GB. It ships `dataset_statistics.json` with the `libero_combined` normalization key
+and `memory_meta.json`, so the commands below work against the downloaded directory
+unchanged.
+
 ### 4.1. Canonical evaluation — all four suites
 
 Both inference modes were reported, so both are run:
